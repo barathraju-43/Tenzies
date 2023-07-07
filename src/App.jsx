@@ -14,16 +14,15 @@ export default function App() {
     const [rolls, setRolls] = useState(0);
     const [tenzies, setTenzies] = useState(false);
     const [time, setTime] = useState(0);
-    const [stopped, setStopped] = useState(false);
     const [score, setScore] = useState(50);
     const [bestRecord, setBestRecord] = useState(() => {
       const storedBestRecord = localStorage.getItem('bestRecord');
       return storedBestRecord ? parseInt(storedBestRecord, 10) : 50;
     });
 
-
   useEffect(() => {
-   
+      // Storing the best record in localStorage when the number of rolls to win 
+      //is lesser than the previous record
       if(score < bestRecord){
         localStorage.setItem('bestRecord', score.toString());
         setBestRecord(score);
@@ -35,9 +34,8 @@ export default function App() {
       const timer = startGame ? setInterval(() => {
         tenzies ? setTime(prevTime=>prevTime) : setTime(prevTime => prevTime + 1);
       }, 1000) : setTime(0);
-   
       return () => clearInterval(timer);
-    }, [startGame, stopped]);
+    }, [startGame,tenzies]);
     
     useEffect(() => {
       const allHeld = dice.every(die => die.isHeld)
@@ -46,7 +44,6 @@ export default function App() {
         if (allHeld && allSameValue) {
             setScore(rolls);
             setTenzies(true)
-            setStopped(true)
         }
         }, [dice])
     
@@ -64,7 +61,6 @@ export default function App() {
          setTime(0);
          setDice(allNewDice());
          setTenzies(false)
-         setStopped(false)
       }
       else{ 
         setRolls(prevRolls => prevRolls+1);
@@ -93,6 +89,8 @@ export default function App() {
     
     function startingGame() {
       setStartGame(prev => !prev)
+      setRolls(0);
+      setTenzies(false)
       setDice(allNewDice());
     }
 
@@ -113,14 +111,14 @@ export default function App() {
             : 
            (
             <>
-            { tenzies && <Confetti 
+            { tenzies && startGame && <Confetti 
               width={confettiWidth}
               height={confettiHeight}
               /> }
               <h1 className="title">Tenzies</h1>
-              <div class="back-button" onClick={startingGame}>
-                <span class="back-icon">⬅️</span>
-                <span class="back-text">Home</span>
+              <div className="back-button" onClick={startingGame}>
+                <span className="back-icon">⬅️</span>
+                <span className="back-text">Home</span>
               </div>
 
             {!tenzies && <h4>TIME: {time}s</h4>}
@@ -129,7 +127,7 @@ export default function App() {
             </div>
             <button className='roll-btn' onClick={rollingDice}>{!tenzies ? "Roll" : "New Game"}</button>
             { tenzies && <h4>{`You won the Game! You took ${rolls} rolls and ${time} seconds to win the game`}</h4>}
-            <h3>{`The Best score is ${bestRecord}`}</h3>
+            <h3>{`Best score: ${bestRecord} Rolls`}</h3>
             </>
            )
 }
